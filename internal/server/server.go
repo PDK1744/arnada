@@ -13,7 +13,7 @@ import (
 )
 
 func StartServer() {
-	cfg, err := config.LoadConfig("/home/kobeb/KobeCodes/gogateway/sampleconfig.yaml")
+	cfg, err := config.LoadConfig("/home/kobeb/KobeCodes/gogateway/config.yaml")
 	if err != nil {
 		panic(err)
 	}
