@@ -1,0 +1,16 @@
+server:
+  listen: ":9999"
+
+routes:
+  - host: sub.domain.com
+    upstream: http://127.0.0.1:8765
+
+  - host: sub.domain.com
+    upstream: http://127.0.0.1:9876
+
+  - host: test.local
+    upstream: http://localhost:8888
+
+logging:
+  format: json
+  output: stdout
