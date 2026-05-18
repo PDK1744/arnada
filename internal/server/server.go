@@ -8,8 +8,6 @@ import (
 	"github.com/PDK1744/gogateway/internal/config"
 	"github.com/PDK1744/gogateway/internal/proxy"
 	"github.com/PDK1744/gogateway/internal/router"
-	// "github.com/PDK1744/gogateway/internal/config"
-	// "github.com/PDK1744/gogateway/internal/router"
 )
 
 func StartServer() {
