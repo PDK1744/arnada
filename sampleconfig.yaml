@@ -9,7 +9,7 @@ routes:
     upstream: http://127.0.0.1:9876
 
   - host: test.local
-    upstream: http://localhost:8888
+    upstream: http://127.0.0.1:8888
 
 logging:
   format: json

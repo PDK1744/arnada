@@ -3,10 +3,13 @@ package proxy
 import (
 	"net/http/httputil"
 	"net/url"
+
+	"github.com/PDK1744/gogateway/internal/config"
 )
 
-func Proxy(backendURL string) (*httputil.ReverseProxy, error) {
-	url, err := url.Parse(backendURL)
+func NewProxy(route *config.RouteConfig) (*httputil.ReverseProxy, error) {
+	url, err := url.Parse(route.Upstream)
+	//log.Println("PARSED URL: ", url)
 	if err != nil {
 		return nil, err
 	}
