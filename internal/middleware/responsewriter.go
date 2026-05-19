@@ -17,7 +17,13 @@ func (rw *StatWriter) Write(b []byte) (int, error) {
 	if rw.Status == 0 {
 		rw.Status = http.StatusOK
 	}
-	n, _ := rw.ResponseWriter.Write(b)
-	rw.Bytes = n
-	return rw.ResponseWriter.Write(b)
+	n, err := rw.ResponseWriter.Write(b)
+	rw.Bytes += n
+	return n, err
+}
+
+func (rw *StatWriter) Flush() {
+	if f, ok := rw.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
 }
