@@ -8,24 +8,19 @@ import (
 )
 
 type Router struct {
-	routes []Route
-}
-
-type Route struct {
-	Host     string
-	Upstream string
+	routes []config.RouteConfig
 }
 
 func NewRouter(cfg *config.Config) (*Router, error) {
-	var routes []Route
+	var routes []config.RouteConfig
 	for _, r := range cfg.Routes {
-		route := &Route{Host: r.Host, Upstream: r.Upstream}
+		route := &config.RouteConfig{Host: r.Host, Upstream: r.Upstream}
 		routes = append(routes, *route)
 	}
 	return &Router{routes: routes}, nil
 }
 
-func (r *Router) Match(req *http.Request) (backend string, ok bool) {
+func (r *Router) Match(req *http.Request) (upstream string, ok bool) {
 	for _, r := range r.routes {
 		if r.Host == req.Host {
 			fmt.Println("Match found!")

@@ -2,10 +2,10 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/PDK1744/gogateway/internal/config"
+	"github.com/PDK1744/gogateway/internal/middleware"
 	"github.com/PDK1744/gogateway/internal/proxy"
 	"github.com/PDK1744/gogateway/internal/router"
 )
@@ -16,22 +16,33 @@ func StartServer() {
 		panic(err)
 	}
 
-	router, err := router.NewRouter(cfg)
+	rtr, err := router.NewRouter(cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		upstream, _ := router.Match(r)
+	proxyManager, err := proxy.NewProxyManager(cfg)
+	if err != nil {
+		panic(err)
+	}
+	finalHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upstream, _ := rtr.Match(r)
 		if upstream == "" {
 			http.Error(w, "Response not found", http.StatusNotFound)
+			return
 		}
-		proxy, err := proxy.Proxy(upstream)
+
+		proxy, err := proxyManager.GetProxy(upstream)
 		if err != nil {
-			log.Fatal("PROXY ERROR: ", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
+
 		proxy.ServeHTTP(w, r)
 	})
+
+	wrapped := middleware.BuildChain(finalHandler, middleware.ReqId, middleware.Logger)
+
 	fmt.Println("Gateway listening on: ", cfg.Server.Listen)
-	http.ListenAndServe(cfg.Server.Listen, nil)
+	http.ListenAndServe(cfg.Server.Listen, wrapped)
 }
