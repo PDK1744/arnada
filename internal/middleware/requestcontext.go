@@ -1,6 +1,13 @@
 package middleware
 
-import "time"
+import (
+	"context"
+	"time"
+)
+
+type ctxKey int
+
+const contextKey ctxKey = iota
 
 type RequestContext struct {
 	RequestID string
@@ -14,10 +21,19 @@ type RequestContext struct {
 	DurationMs int64
 
 	Status int
-	Bytes  int64
 
 	ReqBodySize  int
 	RespBodySize int
 
 	Error string
+}
+
+// attach *RequestContext to context
+func WithRequestContext(ctx context.Context, rc *RequestContext) context.Context {
+	return context.WithValue(ctx, contextKey, rc)
+}
+
+func GetRequestContext(ctx context.Context) (*RequestContext, bool) {
+	rc, ok := ctx.Value(contextKey).(*RequestContext)
+	return rc, ok
 }

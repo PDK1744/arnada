@@ -53,7 +53,7 @@ func StartServer() {
 		log.Println("PROXY RETURNED")
 	})
 
-	wrapped := middleware.BuildChain(finalHandler, middleware.Logger)
+	wrapped := middleware.BuildChain(finalHandler, middleware.ReqId, middleware.Logger)
 
 	fmt.Println("Gateway listening on: ", cfg.Server.Listen)
 	http.ListenAndServe(cfg.Server.Listen, wrapped)

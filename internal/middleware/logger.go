@@ -1,23 +1,32 @@
 package middleware
 
 import (
-	"log"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
 
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("LOGGER HIT")
 		statWriter := &StatWriter{ResponseWriter: w, Status: http.StatusOK}
-		start := time.Now()
+		defer func() {
+			rc, ok := GetRequestContext(r.Context())
+			if !ok {
+				fmt.Println("RequestContext not found")
+				return
+			}
+
+			// sync data into the context object
+			rc.Status = statWriter.Status
+			rc.RespBodySize = int(statWriter.Bytes)
+			rc.DurationMs = int64(time.Since(rc.StartTime).Milliseconds())
+
+			rcJson, _ := json.Marshal(rc)
+			fmt.Println(string(rcJson))
+		}()
 
 		next.ServeHTTP(statWriter, r)
-		log.Println("AFTER HANDLER")
 
-		log.Printf(
-			"Method: %s | Path: %s | Duration: %v | Status: %v | Bytes: %v | RemoteAddr: %v",
-			r.Method, r.URL.Path, time.Since(start).Milliseconds(), statWriter.Status, statWriter.Bytes, r.RemoteAddr,
-		)
 	})
 }
