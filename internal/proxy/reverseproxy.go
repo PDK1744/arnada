@@ -24,8 +24,9 @@ func NewProxy(route *config.RouteConfig) (*httputil.ReverseProxy, error) {
 		r.Header.Del("X-Forwarded-For")
 		r.Header.Set("X-Forwarded-For", r.RemoteAddr)
 		r.Header.Del("X-Real-IP")
-		rc, _ := middleware.GetRequestContext(r.Context())
-		rc.Upstream = string(r.URL.Host)
+		if rc, ok := middleware.GetRequestContext(r.Context()); ok {
+			rc.Upstream = r.URL.Host
+		}
 	}
 
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
