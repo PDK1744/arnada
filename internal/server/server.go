@@ -1,8 +1,14 @@
 package server
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/PDK1744/gogateway/internal/config"
 	"github.com/PDK1744/gogateway/internal/middleware"
@@ -44,5 +50,24 @@ func StartServer() {
 	wrapped := middleware.BuildChain(finalHandler, middleware.ReqId, middleware.Logger)
 
 	fmt.Println("Gateway listening on: ", cfg.Server.Listen)
-	http.ListenAndServe(cfg.Server.Listen, wrapped)
+	server := &http.Server{Addr: cfg.Server.Listen, Handler: wrapped}
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown:", err)
+	}
+	log.Println("Server exiting")
 }
