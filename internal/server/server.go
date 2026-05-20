@@ -7,7 +7,6 @@ import (
 
 	"github.com/PDK1744/gogateway/internal/config"
 	"github.com/PDK1744/gogateway/internal/middleware"
-	"github.com/PDK1744/gogateway/internal/middleware/logger"
 	"github.com/PDK1744/gogateway/internal/proxy"
 	"github.com/PDK1744/gogateway/internal/router"
 )
@@ -54,7 +53,7 @@ func StartServer() {
 		log.Println("PROXY RETURNED")
 	})
 
-	wrapped := middleware.BuildChain(finalHandler, logger.Logger)
+	wrapped := middleware.BuildChain(finalHandler, middleware.Logger)
 
 	fmt.Println("Gateway listening on: ", cfg.Server.Listen)
 	http.ListenAndServe(cfg.Server.Listen, wrapped)
