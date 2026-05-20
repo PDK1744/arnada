@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"fmt"
-	"log"
 	"net/http/httputil"
 
 	"github.com/PDK1744/gogateway/internal/config"
@@ -29,8 +28,5 @@ func (p *ProxyManager) GetProxy(upstream string) (*httputil.ReverseProxy, error)
 	if !ok {
 		return nil, fmt.Errorf("Invalid or missing upstream: %v", upstream)
 	}
-	fmt.Println("Proxy found!")
-	log.Println("GET PROXY FOR:", upstream)
-	log.Printf("PROXY INSTANCE: %+v\n", p)
 	return proxUp, nil
 }

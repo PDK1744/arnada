@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/PDK1744/gogateway/internal/config"
@@ -38,19 +37,8 @@ func StartServer() {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		proxy.Transport = &http.Transport{
-			DisableKeepAlives: true,
-		}
-		proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-			log.Println("PROXY ERROR:", err)
-			http.Error(w, err.Error(), http.StatusBadGateway)
-		}
-		log.Println("HOST:", r.Host)
-		log.Println("UPSTREAM:", upstream)
 
-		log.Println("ABOUT TO CALL PROXY")
 		proxy.ServeHTTP(w, r)
-		log.Println("PROXY RETURNED")
 	})
 
 	wrapped := middleware.BuildChain(finalHandler, middleware.ReqId, middleware.Logger)
