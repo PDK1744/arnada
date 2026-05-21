@@ -11,18 +11,17 @@ func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		statWriter := &StatWriter{ResponseWriter: w, Status: http.StatusOK}
 		defer func() {
-			rc, ok := GetRequestContext(r.Context())
-			if !ok {
-				fmt.Println("RequestContext not found")
+			reqCtx := statWriter.RequestContext
+			if reqCtx == nil {
+				fmt.Println("RequestContext not found on StatWriter")
 				return
 			}
 
 			// sync data into the context object
-			rc.Status = statWriter.Status
-			rc.RespBodySize = int(statWriter.Bytes)
-			rc.DurationMs = int64(time.Since(rc.StartTime).Milliseconds())
+			duration := time.Since(reqCtx.StartTime).Milliseconds()
+			reqCtx.SetResponse(statWriter.Status, statWriter.Bytes, duration)
 
-			rcJson, _ := json.Marshal(rc)
+			rcJson, _ := json.Marshal(reqCtx)
 			fmt.Println(string(rcJson))
 		}()
 

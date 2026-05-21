@@ -47,7 +47,7 @@ func StartServer() {
 		proxy.ServeHTTP(w, r)
 	})
 
-	wrapped := middleware.BuildChain(finalHandler, middleware.ReqId, middleware.Logger)
+	wrapped := middleware.BuildChain(finalHandler, middleware.Logger, middleware.ContextInitializer, middleware.ReqId)
 
 	fmt.Println("Gateway listening on: ", cfg.Server.Listen)
 	server := &http.Server{Addr: cfg.Server.Listen, Handler: wrapped}
