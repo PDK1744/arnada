@@ -20,7 +20,12 @@ type ServerConfig struct {
 }
 
 type RouteConfig struct {
-	Host     string `yaml:"host"`
+	Host  string       `yaml:"host"`
+	Paths []PathConfig `yaml:"paths"`
+}
+
+type PathConfig struct {
+	Path     string `yaml:"path"`
 	Upstream string `yaml:"upstream"`
 }
 
@@ -33,7 +38,6 @@ func LoadConfig(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatalf("config file not loaded: %v", err)
-		//return nil, err
 	}
 
 	var cfg Config
@@ -46,7 +50,6 @@ func LoadConfig(path string) (*Config, error) {
 	if err != nil {
 		log.Fatalf("INVALID CONFIG: %v", err)
 	}
-	//returnConfig(&cfg)
 
 	return &cfg, nil
 }
@@ -62,27 +65,22 @@ func validateConfig(cfg *Config) error {
 	if len(cfg.Routes) == 0 {
 		return errors.New("No routes found")
 	}
-	for i := range cfg.Routes {
-		route := &cfg.Routes[i]
-		if route.Host == "" {
-			return fmt.Errorf("No host found for route: %v", i+1)
+	for _, r := range cfg.Routes {
+		if r.Host == "" {
+			return errors.New("route configuration contains an empty or missing host domain")
 		}
-		if route.Upstream == "" {
-			return fmt.Errorf("No backend found for route: %v", i)
+		if len(r.Paths) == 0 {
+			return fmt.Errorf("host %q must have at least one path configured", r.Host)
+		}
+		for _, p := range r.Paths {
+			if p.Path == "" {
+				return fmt.Errorf("host %q contains a route configuration with a missing path string", r.Host)
+			}
+			if p.Upstream == "" {
+				return fmt.Errorf("path %q under host %q is missing its upstream target URL", p.Path, r.Host)
+			}
 		}
 	}
 
 	return nil
 }
-
-// func returnConfig(cfg *Config) {
-// 	fmt.Printf("SERVER LISTEN: %v\n", cfg.Server.Listen)
-// 	fmt.Printf("ROUTES: \n")
-// 	for i, r := range cfg.Routes {
-// 		fmt.Printf("ROUTE %v\n", i)
-// 		fmt.Printf("ROUTE HOST: %v\n", r.Host)
-// 		fmt.Printf("ROUTE BACKEND: %v\n", r.Backend)
-// 	}
-// 	fmt.Printf("LOGGING FORMAT: %v\n", cfg.Logging.Format)
-// 	fmt.Printf("LOGGING OUTPUT: %v\n", cfg.Logging.Output)
-// }

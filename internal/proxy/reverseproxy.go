@@ -5,12 +5,11 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/PDK1744/gogateway/internal/config"
 	"github.com/PDK1744/gogateway/internal/middleware"
 )
 
-func NewProxy(route *config.RouteConfig) (*httputil.ReverseProxy, error) {
-	url, err := url.Parse(route.Upstream)
+func NewProxy(upstream string) (*httputil.ReverseProxy, error) {
+	url, err := url.Parse(upstream)
 	if err != nil {
 		return nil, err
 	}
