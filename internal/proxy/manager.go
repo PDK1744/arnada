@@ -14,11 +14,15 @@ type ProxyManager struct {
 func NewProxyManager(cfg *config.Config) (*ProxyManager, error) {
 	proxies := make(map[string]*httputil.ReverseProxy)
 	for _, r := range cfg.Routes {
-		proxy, err := NewProxy(&r)
-		if err != nil {
-			return nil, err
+		for _, path := range r.Paths {
+			if _, ok := proxies[path.Upstream]; !ok {
+				proxy, err := NewProxy(path.Upstream)
+				if err != nil {
+					return nil, err
+				}
+				proxies[path.Upstream] = proxy
+			}
 		}
-		proxies[r.Upstream] = proxy
 	}
 	return &ProxyManager{proxies: proxies}, nil
 }

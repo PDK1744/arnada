@@ -1,31 +1,65 @@
 package router
 
 import (
-	"fmt"
+	"net"
 	"net/http"
+	"sort"
+	"strings"
 
 	"github.com/PDK1744/gogateway/internal/config"
 )
 
+type SortedPaths []config.PathConfig
+
 type Router struct {
-	routes []config.RouteConfig
+	hostRoutes map[string]SortedPaths
 }
 
-func NewRouter(cfg *config.Config) (*Router, error) {
-	var routes []config.RouteConfig
-	for _, r := range cfg.Routes {
-		route := &config.RouteConfig{Host: r.Host, Upstream: r.Upstream}
-		routes = append(routes, *route)
+// func NewRouter(cfg *config.Config) (*Router, error) {
+// 	var routes []config.RouteConfig
+// 	for _, r := range cfg.Routes {
+// 		route := &config.RouteConfig{Host: r.Host, Upstream: r.Upstream}
+// 		routes = append(routes, *route)
+// 	}
+// 	return &Router{routes: routes}, nil
+// }
+
+func NewRouter(cfg *config.Config) *Router {
+	rtr := &Router{
+		hostRoutes: make(map[string]SortedPaths),
 	}
-	return &Router{routes: routes}, nil
+	for _, route := range cfg.Routes {
+		paths := SortedPaths(route.Paths)
+
+		sort.SliceStable(paths, func(i, j int) bool {
+			return len(paths[i].Path) > len(paths[j].Path)
+		})
+
+		hostKey := strings.ToLower(strings.TrimSpace(route.Host))
+		rtr.hostRoutes[hostKey] = paths
+	}
+	return rtr
 }
 
 func (r *Router) Match(req *http.Request) (upstream string, ok bool) {
-	for _, r := range r.routes {
-		if r.Host == req.Host {
-			fmt.Println("Match found!")
-			return r.Upstream, ok
+	// 1. Clean and isolate the host from r.Host
+	host := req.Host
+	if strings.Contains(host, ":") {
+		if h, _, err := net.SplitHostPort(host); err == nil {
+			host = h
 		}
 	}
-	return "", ok
+	host = strings.ToLower(host)
+
+	// 2. Look up host in hostRoutes
+	paths, hostExists := r.hostRoutes[host]
+	if !hostExists {
+		return "", false
+	}
+	for _, p := range paths {
+		if strings.HasPrefix(req.URL.Path, p.Path) {
+			return p.Upstream, true
+		}
+	}
+	return "", false
 }

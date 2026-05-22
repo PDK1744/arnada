@@ -1,0 +1,20 @@
+server:
+  listen: ":9999"
+
+routes:
+  - host: sub.domain.com
+    paths:
+    - path: /api/v1
+      upstream: http://127.0.0.1:8765
+    - path: /static
+      upstream: http://127.0.0.1:4321
+    - path: /
+      upstream: http://127.0.0.1:9876
+  - host: test.local
+    paths:
+    - path: /
+      upstream: http://127.0.0.1:8888
+
+logging:
+  format: json
+  output: stdout

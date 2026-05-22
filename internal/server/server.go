@@ -22,10 +22,7 @@ func StartServer() {
 		panic(err)
 	}
 
-	rtr, err := router.NewRouter(cfg)
-	if err != nil {
-		panic(err)
-	}
+	rtr := router.NewRouter(cfg)
 
 	proxyManager, err := proxy.NewProxyManager(cfg)
 	if err != nil {
