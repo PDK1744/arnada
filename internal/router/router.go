@@ -15,15 +15,6 @@ type Router struct {
 	hostRoutes map[string]SortedPaths
 }
 
-// func NewRouter(cfg *config.Config) (*Router, error) {
-// 	var routes []config.RouteConfig
-// 	for _, r := range cfg.Routes {
-// 		route := &config.RouteConfig{Host: r.Host, Upstream: r.Upstream}
-// 		routes = append(routes, *route)
-// 	}
-// 	return &Router{routes: routes}, nil
-// }
-
 func NewRouter(cfg *config.Config) *Router {
 	rtr := &Router{
 		hostRoutes: make(map[string]SortedPaths),
@@ -42,7 +33,6 @@ func NewRouter(cfg *config.Config) *Router {
 }
 
 func (r *Router) Match(req *http.Request) (upstream string, ok bool) {
-	// 1. Clean and isolate the host from r.Host
 	host := req.Host
 	if strings.Contains(host, ":") {
 		if h, _, err := net.SplitHostPort(host); err == nil {
@@ -51,7 +41,6 @@ func (r *Router) Match(req *http.Request) (upstream string, ok bool) {
 	}
 	host = strings.ToLower(host)
 
-	// 2. Look up host in hostRoutes
 	paths, hostExists := r.hostRoutes[host]
 	if !hostExists {
 		return "", false
