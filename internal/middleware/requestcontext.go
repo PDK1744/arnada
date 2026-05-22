@@ -37,3 +37,18 @@ func GetRequestContext(ctx context.Context) (*RequestContext, bool) {
 	rc, ok := ctx.Value(contextKey).(*RequestContext)
 	return rc, ok
 }
+
+func (rc *RequestContext) SetResponse(status, respBodySize int, duration int64) {
+	rc.Status = status
+	rc.RespBodySize = respBodySize
+	rc.DurationMs = duration
+}
+
+func (rc *RequestContext) SetRequest(reqId, method, path, host string, startTime time.Time, reqBodySize int) {
+	rc.RequestID = reqId
+	rc.Method = method
+	rc.Path = path
+	rc.Host = host
+	rc.StartTime = startTime
+	rc.ReqBodySize = reqBodySize
+}

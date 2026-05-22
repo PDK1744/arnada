@@ -16,16 +16,27 @@ func ReqId(next http.Handler) http.Handler {
 
 		w.Header().Set("X-Request-ID", reqID)
 
-		rc := &RequestContext{
-			RequestID:   reqID,
-			Method:      r.Method,
-			Path:        r.URL.Path,
-			Host:        r.Host,
-			StartTime:   time.Now(),
-			ReqBodySize: int(r.ContentLength),
+		reqCtx, ok := GetRequestContext(r.Context())
+		if !ok {
+			return
 		}
-		ctx := WithRequestContext(r.Context(), rc)
+		reqCtx.SetRequest(reqID, r.Method, r.URL.Path, r.Host, time.Now(), int(r.ContentLength))
 
+		ctx := WithRequestContext(r.Context(), reqCtx)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func ContextInitializer(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reqCtx := &RequestContext{}
+
+		if sw, ok := w.(*StatWriter); ok {
+			sw.RequestContext = reqCtx
+		}
+
+		ctx := WithRequestContext(r.Context(), reqCtx)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

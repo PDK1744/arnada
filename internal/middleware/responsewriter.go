@@ -9,8 +9,9 @@ import (
 
 type StatWriter struct {
 	http.ResponseWriter
-	Status int
-	Bytes  int
+	Status         int
+	Bytes          int
+	RequestContext *RequestContext
 }
 
 func (rw *StatWriter) WriteHeader(status int) {
